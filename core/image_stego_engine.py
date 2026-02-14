@@ -7,6 +7,65 @@ from datetime import datetime
 # MODIFICATION: Define the EOF marker as a binary string
 EOF_MARKER = '1111111111111110'  # 16 bits unlikely to appear in normal text
 
+# --- VALIDATION FUNCTIONS ---
+
+def is_valid_steganography(message, bits_position, total_bits):
+    """
+    Validates if extracted data is likely real steganography or a false positive.
+    
+    Args:
+        message (str): Extracted message
+        bits_position (int): Bit position where EOF marker was found
+        total_bits (int): Total available bits in image
+    
+    Returns:
+        bool: True if likely real steganography, False if likely false positive
+    """
+    if not message:
+        return False
+    
+    # Check 1: Message should not be too short (likely random EOF marker)
+    if len(message) < 3:
+        return False
+    
+    # Check 2: Message should not be all null bytes or single repeated character
+    unique_chars = len(set(message))
+    if unique_chars < 2:  # All same character = false positive
+        return False
+    
+    # Check 3: Should have substantial ASCII printable characters (32-126 range)
+    # Not extended ASCII or binary garbage
+    ascii_printable = sum(1 for c in message if 32 <= ord(c) <= 126)
+    ascii_ratio = ascii_printable / len(message)
+    
+    # If less than 70% standard ASCII printable, likely false positive
+    if ascii_ratio < 0.7:
+        return False
+    
+    # Check 4: Should contain common text characters (letters, spaces, punctuation)
+    # Real text messages usually have letters
+    has_letters = any(c.isalpha() for c in message)
+    if not has_letters:
+        return False
+    
+    # Check 5: Should not have too many high-bit characters (extended ASCII junk)
+    high_bit_chars = sum(1 for c in message if ord(c) > 127)
+    if high_bit_chars > len(message) * 0.3:  # More than 30% = likely garbage
+        return False
+    
+    # Check 6: EOF marker should not appear too early in the image
+    # Real steganography usually has at least a few characters before EOF
+    min_expected_bits = 24  # At least 3 characters (3 * 8 bits)
+    if bits_position < min_expected_bits:
+        return False
+    
+    # Check 7: Message should not be excessive length (likely scanning into random data)
+    max_reasonable_length = 10000  # 10KB of text is reasonable for steganography
+    if len(message) > max_reasonable_length:
+        return False
+    
+    return True
+
 # --- CORE LOGIC FUNCTIONS (Unchanged) ---
 
 def xor_encrypt(plaintext, key):
@@ -216,11 +275,11 @@ def analyze_image(file_path, decode_key=None):
         else:
             result['metadata']['exif_present'] = False
         
-        # Attempt LSB extraction using existing decode logic
+        # Attempt LSB extraction using improved detection logic
         width, height = image.size
         pixel_map = image.load()
         extracted_bits = ""
-        eof_found = False
+        total_bits = width * height * 3
         
         for y in range(height):
             for x in range(width):
@@ -229,11 +288,13 @@ def analyze_image(file_path, decode_key=None):
                 for color_val in pixel[:3]:
                     extracted_bits += str(color_val & 1)
                     
+                    # Check if we found the EOF marker
                     if extracted_bits.endswith(EOF_MARKER):
-                        eof_found = True
+                        bits_position = len(extracted_bits)
                         message_binary = extracted_bits[:-len(EOF_MARKER)]
                         message = ""
                         
+                        # Convert bits to characters
                         for i in range(0, len(message_binary), 8):
                             byte = message_binary[i:i+8]
                             if len(byte) == 8:
@@ -242,22 +303,31 @@ def analyze_image(file_path, decode_key=None):
                                 except ValueError:
                                     pass  # Skip invalid bytes silently
                         
-                        # Apply XOR decryption if key provided
-                        if decode_key is not None:
-                            try:
-                                message = xor_decrypt(message, decode_key)
-                            except Exception:
-                                result['error'] = "Decryption failed - possible wrong key"
-                        
-                        result['hidden_message'] = message
-                        result['has_hidden_data'] = True
-                        result['status'] = 'success'
-                        return result
+                        # Validate if this is real steganography or false positive
+                        if is_valid_steganography(message, bits_position, total_bits):
+                            # Valid steganography detected!
+                            # Apply XOR decryption if key provided
+                            if decode_key is not None:
+                                try:
+                                    message = xor_decrypt(message, decode_key)
+                                except Exception:
+                                    result['error'] = "Decryption failed - possible wrong key"
+                            
+                            result['hidden_message'] = message
+                            result['has_hidden_data'] = True
+                            result['status'] = 'success'
+                            return result
+                        else:
+                            # False positive detected - stop scanning
+                            # This is likely random data, not real steganography
+                            result['hidden_message'] = "No hidden message detected"
+                            result['has_hidden_data'] = False
+                            result['status'] = 'success'
+                            return result
         
-        # No EOF marker found
-        if not eof_found:
-            result['hidden_message'] = "No hidden message detected"
-            result['has_hidden_data'] = False
+        # Scanned entire image, no EOF marker found at all
+        result['hidden_message'] = "No hidden message detected"
+        result['has_hidden_data'] = False
         
         result['status'] = 'success'
         return result
