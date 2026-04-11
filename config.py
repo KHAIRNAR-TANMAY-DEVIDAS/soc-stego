@@ -11,6 +11,10 @@ APP_NAME = "SOC Steganography Detection Tool"
 APP_VERSION = "1.0.0"
 APP_DESCRIPTION = "Image Steganography Detection and Analysis Tool for SOC Operations"
 
+# VirusTotal API Configuration
+VT_API_KEY = "8bc80e4ff2e97bb68605c04bca803ada7ef1d6b8f95d1d531d2cad293f4b5680"
+VT_API_URL = "https://www.virustotal.com/api/v3/files/"
+
 # GUI Configuration
 WINDOW_WIDTH = 900
 WINDOW_HEIGHT = 700
@@ -29,9 +33,7 @@ COLOR_TEXT = "#2C3E50"           # Dark text
 
 # File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOGS_DIR = os.path.join(BASE_DIR, "logs")
-TESTS_DIR = os.path.join(BASE_DIR, "tests")
-CONFIG_DIR = os.path.join(BASE_DIR, "config")
+LOGS_DIR = os.path.join(BASE_DIR, "resources", "logs")
 
 # Ensure logs directory exists
 os.makedirs(LOGS_DIR, exist_ok=True)
@@ -57,6 +59,7 @@ CSV_FIELDS = [
     'image_dimensions',
     'image_mode',
     'max_capacity_bytes',
+    'entropy_score',
     'has_hidden_data',
     'hidden_message_length',
     'hidden_message_preview',

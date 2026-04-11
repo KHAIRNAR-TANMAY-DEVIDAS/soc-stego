@@ -22,20 +22,12 @@ def main():
     parser = argparse.ArgumentParser(description=APP_DESCRIPTION)
     parser.add_argument('--verify', action='store_true', 
                        help='Run project structure verification instead of launching GUI')
-    parser.add_argument('--cli', action='store_true',
-                       help='Launch CLI mode instead of GUI')
     
     args = parser.parse_args()
     
     if args.verify:
         # Run verification mode
         run_verification()
-    elif args.cli:
-        # Launch CLI mode
-        print(f"\n{APP_NAME} v{APP_VERSION} - CLI Mode")
-        print("=" * 60)
-        from core.image_stego_engine import main as cli_main
-        cli_main()
     else:
         # Launch GUI (default)
         launch_application()
@@ -69,11 +61,11 @@ def run_verification():
     print("-" * 60)
     
     try:
-        from core.image_stego_engine import analyze_image, encode_message, decode_message
+        from core.image_stego_engine import analyze_image, is_valid_steganography, xor_decrypt
         print("✓ Core module imported successfully")
-        print("  - analyze_image()")
-        print("  - encode_message()")
-        print("  - decode_message()")
+        print("  - analyze_image() [Main detection function]")
+        print("  - is_valid_steganography() [7-layer validation]")
+        print("  - xor_decrypt() [Decryption support]")
     except ImportError as e:
         print(f"✗ Error importing core module: {e}")
         sys.exit(1)
@@ -102,7 +94,7 @@ def run_verification():
         sys.exit(1)
     
     # Check if required directories exist
-    required_dirs = ['core', 'gui', 'reporting', 'config', 'tests', 'logs']
+    required_dirs = ['core', 'gui', 'reporting']
     all_dirs_exist = True
     for directory in required_dirs:
         if os.path.exists(directory):
@@ -120,8 +112,7 @@ def run_verification():
         print("\nAvailable Commands:")
         print("  python main.py              → Launch GUI (default)")
         print("  python main.py --verify     → Run this verification")
-        print("  python main.py --cli        → Launch CLI mode")
-        print("  python test_phase2.py       → Test reporting module")
+        print("  python tests/quick_test.py  → Run automated tests")
     else:
         print("\n❌ Some directories are missing")
         sys.exit(1)
@@ -130,3 +121,4 @@ def run_verification():
 
 if __name__ == "__main__":
     main()
+

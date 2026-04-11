@@ -1,17 +1,27 @@
+"""
+SOC Steganography Detection Tool - Core Detection Engine
+Focuses on DETECTION and ANALYSIS of LSB steganography (not creation).
+"""
+
 from PIL import Image
-import sys
 import hashlib
 import os
 from datetime import datetime
+import math
+from collections import Counter
 
-# MODIFICATION: Define the EOF marker as a binary string
-EOF_MARKER = '1111111111111110'  # 16 bits unlikely to appear in normal text
+# EOF marker pattern used to identify end of hidden messages
+EOF_MARKER = '1111111111111110'  # 16-bit binary pattern
 
-# --- VALIDATION FUNCTIONS ---
+
+# ===========================
+# VALIDATION FUNCTIONS
+# ===========================
 
 def is_valid_steganography(message, bits_position, total_bits):
     """
     Validates if extracted data is likely real steganography or a false positive.
+    Uses 7-layer validation to prevent false detections.
     
     Args:
         message (str): Extracted message
@@ -24,191 +34,112 @@ def is_valid_steganography(message, bits_position, total_bits):
     if not message:
         return False
     
-    # Check 1: Message should not be too short (likely random EOF marker)
+    # Layer 1: Minimum length check (likely random EOF marker if too short)
     if len(message) < 3:
         return False
     
-    # Check 2: Message should not be all null bytes or single repeated character
+    # Layer 2: Character diversity check (all same character = false positive)
     unique_chars = len(set(message))
-    if unique_chars < 2:  # All same character = false positive
+    if unique_chars < 2:
         return False
     
-    # Check 3: Should have substantial ASCII printable characters (32-126 range)
-    # Not extended ASCII or binary garbage
+    # Layer 3: ASCII printable ratio check (32-126 range)
     ascii_printable = sum(1 for c in message if 32 <= ord(c) <= 126)
     ascii_ratio = ascii_printable / len(message)
-    
-    # If less than 70% standard ASCII printable, likely false positive
-    if ascii_ratio < 0.7:
+    if ascii_ratio < 0.7:  # Less than 70% printable = likely garbage
         return False
     
-    # Check 4: Should contain common text characters (letters, spaces, punctuation)
-    # Real text messages usually have letters
+    # Layer 4: Letter presence check (real messages usually have letters)
     has_letters = any(c.isalpha() for c in message)
     if not has_letters:
         return False
     
-    # Check 5: Should not have too many high-bit characters (extended ASCII junk)
+    # Layer 5: Extended ASCII limit check (high-bit characters = likely garbage)
     high_bit_chars = sum(1 for c in message if ord(c) > 127)
-    if high_bit_chars > len(message) * 0.3:  # More than 30% = likely garbage
+    if high_bit_chars > len(message) * 0.3:  # More than 30% = garbage
         return False
     
-    # Check 6: EOF marker should not appear too early in the image
-    # Real steganography usually has at least a few characters before EOF
-    min_expected_bits = 24  # At least 3 characters (3 * 8 bits)
+    # Layer 6: EOF position validation (at least 3 characters before EOF)
+    min_expected_bits = 24  # 3 characters * 8 bits
     if bits_position < min_expected_bits:
         return False
     
-    # Check 7: Message should not be excessive length (likely scanning into random data)
-    max_reasonable_length = 10000  # 10KB of text is reasonable for steganography
+    # Layer 7: Maximum length check (prevent scanning into random data)
+    max_reasonable_length = 10000  # 10KB is reasonable for steganography
     if len(message) > max_reasonable_length:
         return False
     
     return True
 
-# --- CORE LOGIC FUNCTIONS (Unchanged) ---
 
-def xor_encrypt(plaintext, key):
-    """
-    Encrypts a message using a simple XOR cipher with a string key.
-    """
-    ciphertext = ""
-    key_len = len(key)
-    
-    for i in range(len(plaintext)):
-        plain_char_code = ord(plaintext[i])
-        key_char_code = ord(key[i % key_len])
-        encrypted_char_code = plain_char_code ^ key_char_code
-        ciphertext += chr(encrypted_char_code)
-        
-    return ciphertext
+# ===========================
+# DECRYPTION FUNCTIONS
+# ===========================
 
 def xor_decrypt(ciphertext, key):
     """
-    Decrypts a message using the same XOR cipher and key.
-    """
-    return xor_encrypt(ciphertext, key)
-
-def load_image(image_path):
-    """
-    Opens and loads an image from the specified path.
-    Returns an Image object or None if the file is not found.
-    """
-    try:
-        image = Image.open(image_path)
-        print(f"  Image '{image_path}' loaded successfully.")
-        return image
-    except FileNotFoundError:
-        print(f"  Error: The file '{image_path}' was not found.")
-        return None
-    except OSError:
-        print(f"  Error: Cannot identify image file '{image_path}'.")
-        return None
-
-def save_image(image_object, save_path):
-    """
-    Saves the given Image object to the specified path.
-    """
-    if image_object:
-        image_object.save(save_path)
-        print(f"  Image saved successfully to '{save_path}'.")
-
-def encode_message(image, secret_message, key=None):
-    """
-    Hides a secret message within an image using the LSB technique.
-    If `key` is provided the message will be XOR-encrypted before embedding.
-    Returns a new Image object with the message embedded.
-    """
-    width, height = image.size
-
-    if key is not None:
-        encrypted_message = xor_encrypt(secret_message, key)
-    else:
-        encrypted_message = secret_message
-
-    message_binary = ''.join(format(ord(char), '08b') for char in encrypted_message)
-    message_binary += EOF_MARKER
+    Decrypts a message using XOR cipher with a string key.
+    XOR is symmetric, so encryption and decryption use the same operation.
     
-    max_bits = width * height * 3
-    if len(message_binary) > max_bits:
-        raise ValueError("Error: Message is too large for this image.")
+    Args:
+        ciphertext (str): Encrypted message to decrypt
+        key (str): Decryption key
+    
+    Returns:
+        str: Decrypted plaintext message
+    """
+    plaintext = ""
+    key_len = len(key)
+    
+    for i in range(len(ciphertext)):
+        cipher_char_code = ord(ciphertext[i])
+        key_char_code = ord(key[i % key_len])
+        decrypted_char_code = cipher_char_code ^ key_char_code
+        plaintext += chr(decrypted_char_code)
+    
+    return plaintext
+
+
+# ===========================
+# STATISTICAL ANALYSIS
+# ===========================
+
+def calculate_shannon_entropy(data_bytes):
+    """
+    Calculates the Shannon Entropy of a sequence of bytes.
+    Reveals the mathematical randomness of data to detect encryption/compression.
+    
+    Args:
+        data_bytes (list): List of byte integers (0-255).
         
-    print(f"  Hiding a message of {len(message_binary)} bits (including EOF marker).")
-    
-    encoded_image = image.copy()
-    pixel_map = encoded_image.load()
-    
-    data_index = 0
-    for y in range(height):
-        for x in range(width):
-            pixel = pixel_map[x, y]
-            r, g, b = pixel[0], pixel[1], pixel[2]
-
-            if data_index < len(message_binary):
-                r = (r & 254) | int(message_binary[data_index])
-                data_index += 1
-            if data_index < len(message_binary):
-                g = (g & 254) | int(message_binary[data_index])
-                data_index += 1
-            if data_index < len(message_binary):
-                b = (b & 254) | int(message_binary[data_index])
-                data_index += 1
-
-            if len(pixel) == 4:
-                a = pixel[3]
-                pixel_map[x, y] = (r, g, b, a)
-            else:
-                pixel_map[x, y] = (r, g, b)
-
-            if data_index >= len(message_binary):
-                print("  Message embedded successfully.")
-                return encoded_image
-    
-    return encoded_image
-
-def decode_message(image, key=None):
+    Returns:
+        float: Entropy score (0.0 to 8.0, where 8.0 is total absolute randomness).
     """
-    Extracts a secret message from an image.
-    If `key` is provided, the extracted message is decrypted with XOR using that key.
-    """
-    width, height = image.size
-    pixel_map = image.load()
-    extracted_bits = ""
+    if not data_bytes:
+        return 0.0
+        
+    entropy = 0.0
+    length = len(data_bytes)
+    counts = Counter(data_bytes)
+    
+    for count in counts.values():
+        probability = count / length
+        entropy -= probability * math.log2(probability)
+        
+    return entropy
 
-    for y in range(height):
-        for x in range(width):
-            pixel = pixel_map[x, y]
+def calculate_entropy_from_bits(bits_list):
+    """Helper to convert bit strings to bytes and calculate entropy."""
+    if not bits_list:
+        return 0.0
+    byte_list = []
+    for i in range(0, len(bits_list) - 7, 8):
+        byte_list.append(int("".join(bits_list[i:i+8]), 2))
+    return calculate_shannon_entropy(byte_list)
 
-            for color_val in pixel[:3]:
-                extracted_bits += str(color_val & 1)
-
-                if extracted_bits.endswith(EOF_MARKER):
-                    print("  EOF marker found. Decoding complete.")
-                    message_binary = extracted_bits[:-len(EOF_MARKER)]
-                    message = ""
-                    
-                    for i in range(0, len(message_binary), 8):
-                        byte = message_binary[i:i+8]
-                        if len(byte) == 8:
-                            try:
-                                message += chr(int(byte, 2))
-                            except ValueError:
-                                print(f"  Warning: Invalid byte '{byte}', skipping.")
-                    
-                    if key is not None:
-                        try:
-                            decrypted_message = xor_decrypt(message, key)
-                            return decrypted_message
-                        except Exception as e:
-                            print(f"  Decryption failed (maybe wrong key?): {e}")
-                            return "[DECRYPTION FAILED]"
-                    
-                    return message
-
-    return "Could not find a hidden message."
-
-
-# --- PHASE 1: ANALYSIS WRAPPER FUNCTION ---
+# ===========================
+# DETECTION & ANALYSIS FUNCTIONS
+# ===========================
 
 def analyze_image(file_path, decode_key=None):
     """
@@ -237,7 +168,9 @@ def analyze_image(file_path, decode_key=None):
         'file_size': None,
         'metadata': {},
         'hidden_message': None,
+        'entropy_score': 0.0,
         'has_hidden_data': False,
+        'decryption_key_used': False,
         'timestamp': datetime.now().isoformat(),
         'error': None
     }
@@ -275,23 +208,34 @@ def analyze_image(file_path, decode_key=None):
         else:
             result['metadata']['exif_present'] = False
         
-        # Attempt LSB extraction using improved detection logic
+        # Attempt LSB extraction using improved fast bit-shift logic
         width, height = image.size
         pixel_map = image.load()
-        extracted_bits = ""
+        
+        extracted_bits_list = []
         total_bits = width * height * 3
+        
+        eof_target = int(EOF_MARKER, 2)
+        eof_shift = 0
+        bits_count = 0
         
         for y in range(height):
             for x in range(width):
                 pixel = pixel_map[x, y]
                 
                 for color_val in pixel[:3]:
-                    extracted_bits += str(color_val & 1)
+                    bit = color_val & 1
+                    extracted_bits_list.append(str(bit))
+                    bits_count += 1
+                    
+                    # Efficient bitwise sliding window check for EOF
+                    eof_shift = ((eof_shift << 1) | bit) & 0xFFFF
                     
                     # Check if we found the EOF marker
-                    if extracted_bits.endswith(EOF_MARKER):
-                        bits_position = len(extracted_bits)
-                        message_binary = extracted_bits[:-len(EOF_MARKER)]
+                    if bits_count >= 16 and eof_shift == eof_target:
+                        bits_position = bits_count
+                        # Convert fast buffer string ignoring the EOF bits
+                        message_binary = "".join(extracted_bits_list[:-16])
                         message = ""
                         
                         # Convert bits to characters
@@ -306,8 +250,11 @@ def analyze_image(file_path, decode_key=None):
                         # Validate if this is real steganography or false positive
                         if is_valid_steganography(message, bits_position, total_bits):
                             # Valid steganography detected!
+                            result['entropy_score'] = round(calculate_entropy_from_bits(extracted_bits_list), 4)
+                            
                             # Apply XOR decryption if key provided
                             if decode_key is not None:
+                                result['decryption_key_used'] = True
                                 try:
                                     message = xor_decrypt(message, decode_key)
                                 except Exception:
@@ -318,16 +265,32 @@ def analyze_image(file_path, decode_key=None):
                             result['status'] = 'success'
                             return result
                         else:
-                            # False positive detected - stop scanning
-                            # This is likely random data, not real steganography
-                            result['hidden_message'] = "No hidden message detected"
+                            # False positive detected - stop scanning, but log entropy up to here
+                            result['entropy_score'] = round(calculate_entropy_from_bits(extracted_bits_list), 4)
+                            result['hidden_message'] = f"No hidden message detected (False positive EOF). Entropy: {result['entropy_score']:.4f}"
                             result['has_hidden_data'] = False
                             result['status'] = 'success'
                             return result
         
         # Scanned entire image, no EOF marker found at all
-        result['hidden_message'] = "No hidden message detected"
-        result['has_hidden_data'] = False
+        # Step 2: Advanced Statistical Fallback (Entropy Analysis)
+        entropy_score = round(calculate_entropy_from_bits(extracted_bits_list), 4)
+        result['entropy_score'] = entropy_score
+        
+        from config import ENTROPY_THRESHOLD
+        if entropy_score >= ENTROPY_THRESHOLD:
+            # Mathematical anomaly detected
+            result['has_hidden_data'] = True
+            result['status'] = 'success'
+            result['hidden_message'] = (
+                f"WARNING: High Randomness Detected.\n"
+                f"No EOF signature found, but LSB Shannon Entropy is {entropy_score:.4f} (Threshold: {ENTROPY_THRESHOLD}).\n"
+                f"This mathematical anomaly indicates a highly probable encrypted or compressed steganographic payload."
+            )
+            return result
+        else:
+            result['hidden_message'] = f"Image clean. LSB Entropy: {entropy_score:.4f} (Normal range)"
+            result['has_hidden_data'] = False
         
         result['status'] = 'success'
         return result
@@ -342,112 +305,3 @@ def analyze_image(file_path, decode_key=None):
         result['error'] = f"Analysis failed: {str(e)}"
         return result
 
-
-# --- NEW INTERACTIVE MENU FUNCTIONS ---
-
-def handle_encode():
-    """
-    Guides the user through the encoding process.
-    """
-    print("\n--- ENCODING MODE ---")
-    print("Please provide the following:")
-
-    try:
-        # 1. Get original image path
-        original_path = input("> What is your original image? (e.g., test_image.png): ")
-        original_img = load_image(original_path)
-        if original_img is None:
-            return  # Error message already printed by load_image
-
-        # 2. Get secret message
-        secret_message = input("> What message do you want to hide?: ")
-        if not secret_message:
-            print("  Error: Message cannot be empty.")
-            return
-
-        # 3. Get encryption key (optional)
-        use_key = input("> Do you want to use an encryption key? (y/n): ").strip().lower()
-        key = None
-        if use_key == 'y':
-            key = input("> What is your secret key?: ")
-            if not key:
-                print("  Error: Key cannot be empty.")
-                return
-
-        # 4. Get output file path
-        save_path = input("> What do you want to name the new (output) file?: ")
-        if not save_path:
-            print("  Error: Output file name cannot be empty.")
-            return
-
-        # 5. Process
-        print("\n  Processing...")
-        encoded_img = encode_message(original_img, secret_message, key)
-        save_image(encoded_img, save_path)
-        
-        print(f"\n✅ Success! Your secret message is now hidden in '{save_path}'.")
-
-    except ValueError as e:
-        print(f"\n  Error during encoding: {e}")
-    except Exception as e:
-        print(f"\n  An unexpected error occurred: {e}")
-
-def handle_decode():
-    """
-    Guides the user through the decoding process.
-    """
-    print("\n--- DECODING MODE ---")
-    print("Please provide the following:")
-
-    try:
-        # 1. Get stego image path
-        stego_path = input("> What image do you want to decode? (e.g., secret.png): ")
-        stego_img = load_image(stego_path)
-        if stego_img is None:
-            return
-
-        # 2. Get encryption key (optional)
-        use_key = input("> Do you know the encryption key? (y/n): ").strip().lower()
-        key = None
-        if use_key == 'y':
-            key = input("> What is your secret key?: ")
-            if not key:
-                print("  Error: Key cannot be empty.")
-                return
-
-        # 3. Process
-        print("\n  Processing...")
-        hidden_message = decode_message(stego_img, key)
-        
-        print(f"\n✅ Success! The hidden message is:")
-        print(f"{hidden_message}")
-
-    except Exception as e:
-        print(f"\n  An unexpected error occurred: {e}")
-
-def main():
-    """
-    Main function to run the interactive menu.
-    """
-    print("\n--- LSB Steganography Tool ---")
-    while True:
-        print("\nWhat would you like to do?")
-        print("  1. Hide (encode) a message in an image")
-        print("  2. Find (decode) a message from an image")
-        print("  3. Exit")
-        
-        choice = input("Enter your choice (1, 2, or 3): ").strip()
-
-        if choice == '1':
-            handle_encode()
-        elif choice == '2':
-            handle_decode()
-        elif choice == '3':
-            print("\nGoodbye!")
-            sys.exit()
-        else:
-            print("\n  Invalid choice. Please enter 1, 2, or 3.")
-
-# --- MAIN EXECUTION ---
-if __name__ == '__main__':
-    main()

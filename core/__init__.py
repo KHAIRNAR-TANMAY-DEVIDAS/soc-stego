@@ -1,5 +1,9 @@
-"""Core steganography analysis engine module."""
+"""
+Core steganography detection engine module.
+Focuses on DETECTION and ANALYSIS (not creation).
+"""
 
-from .image_stego_engine import analyze_image, encode_message, decode_message
+from .image_stego_engine import analyze_image, is_valid_steganography, xor_decrypt
 
-__all__ = ['analyze_image', 'encode_message', 'decode_message']
+__all__ = ['analyze_image', 'is_valid_steganography', 'xor_decrypt']
+

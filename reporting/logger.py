@@ -121,10 +121,11 @@ def prepare_csv_row(analysis_result):
         'image_dimensions': metadata.get('dimensions', 'N/A'),
         'image_mode': metadata.get('mode', 'N/A'),
         'max_capacity_bytes': metadata.get('max_capacity_bytes', 0),
+        'entropy_score': analysis_result.get('entropy_score', 0.0),
         'has_hidden_data': analysis_result.get('has_hidden_data', False),
         'hidden_message_length': message_length,
         'hidden_message_preview': message_preview,
-        'decryption_key_used': 'No',  # Will be enhanced in future phases
+        'decryption_key_used': 'Yes' if analysis_result.get('decryption_key_used', False) else 'No',
         'analysis_status': analysis_result.get('status', 'unknown'),
         'error_message': analysis_result.get('error', '')
     }

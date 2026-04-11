@@ -4,6 +4,9 @@
 # Image processing
 Pillow>=10.0.0
 
+# Network and API integration
+requests>=2.31.0
+
 # Note: tkinter is included with standard Python installations
 # If tkinter is missing, install it via your OS package manager:
 # - Ubuntu/Debian: sudo apt-get install python3-tk
