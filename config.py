@@ -12,7 +12,7 @@ APP_VERSION = "1.0.0"
 APP_DESCRIPTION = "Image Steganography Detection and Analysis Tool for SOC Operations"
 
 # VirusTotal API Configuration
-VT_API_KEY = "8bc80e4ff2e97bb68605c04bca803ada7ef1d6b8f95d1d531d2cad293f4b5680"
+VT_API_KEY = "2c584b31fc8e8c7ad3c63563ca32641d59298606aa8ae5fef104cb58ca1296a7"
 VT_API_URL = "https://www.virustotal.com/api/v3/files/"
 
 # GUI Configuration
@@ -33,7 +33,7 @@ COLOR_TEXT = "#2C3E50"           # Dark text
 
 # File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOGS_DIR = os.path.join(BASE_DIR, "resources", "logs")
+LOGS_DIR = os.path.join(BASE_DIR, "logs1")
 
 # Ensure logs directory exists
 os.makedirs(LOGS_DIR, exist_ok=True)

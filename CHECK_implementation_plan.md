@@ -1,41 +1,33 @@
-# VirusTotal Threat Intelligence Integration Plan
+# VirusTotal Threat Intelligence Integration Plan (The Showstopper)
 
-**Objective:** Equip the SOC Steganography Tool with active Threat Intelligence. By integrating the VirusTotal v3 REST API, we will allow analysts to instantly cross-reference underlying image files *and* the extracted hidden payloads against a global database of 90+ antivirus engines.
+**Objective:** Equip the SOC Steganography Tool with active Threat Intelligence. By integrating the VirusTotal v3 REST API, we will allow analysts to instantly cross-reference underlying carrier images *and* the extracted hidden payloads against a global database of 94+ antivirus engines.
 
 ## Proposed Changes
 
-### [NEW] `core/vt_client.py`
-A brand new module dedicated to securely handling web requests to the VirusTotal API.
-*   **Hash Checking:** Will take a SHA-256 hash, append it to `https://www.virustotal.com/api/v3/files/`, and parse the JSON response.
-*   **Error Handling:** Built-in safeguards for timeouts, 404s (File not known to VT), and API rate limits.
+### 1. Requirements & Config (`requirements.txt`, `config.py`)
+*   **Dependencies:** Add `requests>=2.31.0` to support remote HTTP queries.
+*   **Config Keys:** Add `VT_API_KEY = ""` inside `config.py` for API key input.
+*   **Endpoints:** Add constant routing variables in config for `https://www.virustotal.com/api/v3/files/`.
 
-### [MODIFY] `requirements.txt`
-*   Add `requests>=2.31.0` to support remote HTTP queries.
+### 2. New Core Module (`core/vt_client.py`)
+*   Build a dedicated REST API integration client module.
+*   **Dual-Scan Logic:** Handles concurrent/sequential requests. If the image `has_hidden_data`, the module will generate a SHA-256 hash of the *extracted text payload* alongside the image hash.
+*   **Error Handling:** Include robust `try/except` safeguards tracking JSON parsing, 404s (File not known to VT), and 429 API rate limits.
 
-### [MODIFY] `config.py`
-*   Add a constant: `VT_API_KEY = ""` (So you can paste your free API key in).
-*   Add endpoint routing constants.
-
-### [MODIFY] `gui/main_window.py`
-*   **The Button:** Adds a new action button `"Check Threat Intel (VT)"` beside the "Export to CSV" button in the Single Analysis view.
-*   **Dual-Scan Logic:** 
-    1. It grabs the image's SHA-256 hash and sends it to VT.
-    2. **The "Wow" Factor:** If `has_hidden_data` is True, it hashes the *extracted text payload* and sends a second request to VT.
-*   **The Dashboard Popup:** A stylish Tkinter `Toplevel` popup window that aggressively displays the VT scores (e.g., `0/94 Clean`, or `🔴 45/94 MALICIOUS`).
-
----
+### 3. GUI Threat Intelligence (`gui/main_window.py`)
+*   **The Button:** Adds a new action button `"Check Threat Intel (VT)"` directly beside the "Export to CSV" button in the Single Analysis view.
+*   **Threading Engine:** Network requests will trigger an insulated background thread so the core Tkinter application does not dynamically freeze while waiting for web responses.
+*   **The Dashboard Popup:** Rather than permanently altering the main UI grid, VT results will spawn in a stylish `Tkinter Toplevel` popup window. This overlay will aggressively display the scores (e.g., `0/94 Clean` or `🔴 45/94 MALICIOUS`), maintaining the core app's clean appearance.
 
 ## User Review Required
 
-> [!IMPORTANT]
+> [!CAUTION]
 > **API Key Sourcing**
-> You will need a free VirusTotal API Key for this to work. You can get one instantly by making a free account on virustotal.com. I will hardcode a blank variable `VT_API_KEY = ""` in `config.py` for you to paste it into once we build it. Is that acceptable?
+> I am going to populate `config.py` with the empty constant `VT_API_KEY = ""`. After I build the code, you MUST generate a free API key on virustotal.com and paste it in for the buttons to actually connect to the global web!
 
 > [!TIP]
-> **Visual Design**
-> I plan to make the VT results pop up in a separate, dedicated "Threat Report" sub-window rather than permanently altering the main UI grid. This ensures the tool doesn't look cluttered when VT isn't used. Does a popup window sound good?
+> **Testing Strategy (Weaponized Scripting)**
+> To demonstrate the power of your dual-scan logic, use the industry-standard **EICAR Test String**. Hide it in an image using a basic stego scripter. Your VirusTotal popup will successfully expose the malicious payload while completely bypassing traditional antivirus!
 
-## Verification Plan
-1. Add a valid API key to `config.py`.
-2. Select a clean image and click "Check Threat Intel". Verify it queries VT and returns "Clean / Not Found".
-3. Use an EICAR test string or malicious PowerShell snippet as the XOR decryption payload in a test image. Analyze it, hit the VT button, and verify the tool catches the malicious payload!
+## Approval
+Give me the command **"approved"** to begin editing `requirements.txt`, `config.py`, generating `vt_client.py`, and connecting the GUI popups!
