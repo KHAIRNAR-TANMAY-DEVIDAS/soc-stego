@@ -1,2 +1,0 @@
-timestamp,file_path,file_name,file_hash,file_size_bytes,image_format,image_dimensions,image_mode,max_capacity_bytes,entropy_score,has_hidden_data,hidden_message_length,hidden_message_preview,decryption_key_used,analysis_status,error_message
-2026-04-13T13:19:27.223921,test.png,test.png,abcdef,1024,PNG,100x100,RGB,3750,7.9,True,7,malware,No,success,

@@ -1,8 +1,5 @@
 """
 SOC Steganography Detection Tool - Main Entry Point
-Phase 1: Project structure established
-Phase 2: CSV logging implementation
-Phase 3: GUI implementation
 """
 
 import sys
@@ -56,8 +53,8 @@ def run_verification():
     print("=" * 60)
     print(f"\n{APP_DESCRIPTION}\n")
     
-    # Phase 1: Verify imports
-    print("Phase 1: Project Structure Verification")
+    # Verify imports
+    print("Initiating System Component Verification...")
     print("-" * 60)
     
     try:
@@ -106,9 +103,9 @@ def run_verification():
     print("-" * 60)
     
     if all_dirs_exist:
-        print("\n✅ Phase 1 Complete: Project structure validated!")
-        print("✅ Phase 2 Complete: CSV logging & reporting ready!")
-        print("✅ Phase 3 Complete: GUI implementation ready!")
+        print("\n✅ Core engine components validated!")
+        print("✅ Security audit logging system online!")
+        print("✅ GUI matrix ready!")
         print("\nAvailable Commands:")
         print("  python main.py              → Launch GUI (default)")
         print("  python main.py --verify     → Run this verification")

@@ -12,7 +12,7 @@ APP_VERSION = "1.0.0"
 APP_DESCRIPTION = "Image Steganography Detection and Analysis Tool for SOC Operations"
 
 # VirusTotal API Configuration
-VT_API_KEY = "2c584b31fc8e8c7ad3c63563ca32641d59298606aa8ae5fef104cb58ca1296a7"
+VT_API_KEY = "Enter You VirusTotal API Key Here"  # Placeholder - user must set this
 VT_API_URL = "https://www.virustotal.com/api/v3/files/"
 
 # GUI Configuration
@@ -21,15 +21,16 @@ WINDOW_HEIGHT = 700
 WINDOW_MIN_WIDTH = 800
 WINDOW_MIN_HEIGHT = 600
 
-# Color Scheme (Professional SOC Theme)
-COLOR_PRIMARY = "#2C3E50"        # Dark blue-gray
-COLOR_SECONDARY = "#34495E"      # Lighter blue-gray
-COLOR_SUCCESS = "#27AE60"        # Green (clean/safe)
-COLOR_WARNING = "#F39C12"        # Orange (suspicious)
-COLOR_DANGER = "#E74C3C"         # Red (hidden data detected)
-COLOR_INFO = "#3498DB"           # Blue (information)
-COLOR_BACKGROUND = "#ECF0F1"     # Light gray background
-COLOR_TEXT = "#2C3E50"           # Dark text
+# Color Scheme (Matrix Hacker Theme)
+COLOR_PRIMARY = "#0d1117"        # Dark background
+COLOR_SECONDARY = "#161b22"      # Lighter frame background
+COLOR_SUCCESS = "#00FF41"        # Matrix Green (clean/safe)
+COLOR_WARNING = "#FF9900"        # Orange (suspicious)
+COLOR_DANGER = "#FF003C"         # Cyberpunk Red (hidden data detected)
+COLOR_INFO = "#00B4D8"           # Cyber Blue (information)
+COLOR_BACKGROUND = "#000000"     # Black
+COLOR_TEXT = "#00FF41"           # Matrix Green text
+FONT_FAMILY = "Consolas"         # Technical font
 
 # File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -207,70 +207,111 @@ def analyze_image(file_path, decode_key=None):
             result['metadata']['exif_present'] = True
         else:
             result['metadata']['exif_present'] = False
-        
-        # Attempt LSB extraction using improved fast bit-shift logic
-        width, height = image.size
-        pixel_map = image.load()
+
+        total_bits = result['metadata']['max_capacity_bits']
+
+        # ---------------------------------------------------------
+        # FAST PATH: Check for the new Steganography Tool format (Header-based: !BI)
+        # ---------------------------------------------------------
+        if hasattr(image, 'getdata'):
+            try:
+                from core.stego_tool_engine import decode_message
+                test_output = decode_message(file_path, password=None) # Try to extract plain message
+                if len(test_output) > 0 and is_valid_steganography(test_output, 40 + len(test_output.encode()) * 8, total_bits):
+                    result['has_hidden_data'] = True
+                    result['status'] = 'success'
+                    result['hidden_message'] = f"[V2 Stego Tool Format] {test_output}"
+                    # Return early, skip full entropy scan
+                    return result
+            except Exception:
+                pass # Failed to decode cleanly or wrong password
+
+            # Try to validate Header Manually
+            try:
+                import struct
+                header_pixels = list(image.getdata())[:14] # Need ~40 bits, 14 pixels * 3 = 42 bits
+                bits = []
+                for r, g, b, a in header_pixels:
+                    bits.extend([r & 1, g & 1, b & 1])
+                
+                def _bits_to_bytes(bit_list):
+                    b = 0; count = 0; out = bytearray()
+                    for bit in bit_list:
+                        b = (b << 1) | (bit & 1)
+                        count += 1
+                        if count == 8: out.append(b); b = 0; count = 0
+                    return bytes(out)
+                
+                header_bytes = _bits_to_bytes(bits[:40])
+                flag, length = struct.unpack("!BI", header_bytes)
+                if flag in (0, 1) and 0 < length < result['metadata']['max_capacity_bytes']:
+                    if flag == 1:
+                        result['has_hidden_data'] = True
+                        result['status'] = 'success'
+                        result['hidden_message'] = "[V2 Stego Tool Format] ENCRYPTED PAYLOAD DETECTED. Requires Password."
+                        return result
+            except Exception:
+                pass
+
+        # ---------------------------------------------------------
+        # SLOW PATH: Attempt LSB extraction for Legacy EOF finding & Entropy
+        # ---------------------------------------------------------
+        pixel_data = image.getdata()
         
         extracted_bits_list = []
-        total_bits = width * height * 3
-        
         eof_target = int(EOF_MARKER, 2)
         eof_shift = 0
         bits_count = 0
         
-        for y in range(height):
-            for x in range(width):
-                pixel = pixel_map[x, y]
+        # Optimize by extracting bits directly from pixel generator
+        for r, g, b, a in pixel_data:
+            for bit in (r & 1, g & 1, b & 1):
+                extracted_bits_list.append(str(bit))
+                bits_count += 1
                 
-                for color_val in pixel[:3]:
-                    bit = color_val & 1
-                    extracted_bits_list.append(str(bit))
-                    bits_count += 1
+                # Efficient bitwise sliding window check for EOF
+                eof_shift = ((eof_shift << 1) | bit) & 0xFFFF
+                
+                # Check if we found the EOF marker
+                if bits_count >= 16 and eof_shift == eof_target:
+                    bits_position = bits_count
+                    # Convert fast buffer string ignoring the EOF bits
+                    message_binary = "".join(extracted_bits_list[:-16])
+                    message = ""
                     
-                    # Efficient bitwise sliding window check for EOF
-                    eof_shift = ((eof_shift << 1) | bit) & 0xFFFF
+                    # Convert bits to characters
+                    for i in range(0, len(message_binary), 8):
+                        byte = message_binary[i:i+8]
+                        if len(byte) == 8:
+                            try:
+                                message += chr(int(byte, 2))
+                            except ValueError:
+                                pass  # Skip invalid bytes silently
                     
-                    # Check if we found the EOF marker
-                    if bits_count >= 16 and eof_shift == eof_target:
-                        bits_position = bits_count
-                        # Convert fast buffer string ignoring the EOF bits
-                        message_binary = "".join(extracted_bits_list[:-16])
-                        message = ""
+                    # Validate if this is real steganography or false positive
+                    if is_valid_steganography(message, bits_position, total_bits):
+                        # Valid steganography detected!
+                        result['entropy_score'] = round(calculate_entropy_from_bits(extracted_bits_list), 4)
                         
-                        # Convert bits to characters
-                        for i in range(0, len(message_binary), 8):
-                            byte = message_binary[i:i+8]
-                            if len(byte) == 8:
-                                try:
-                                    message += chr(int(byte, 2))
-                                except ValueError:
-                                    pass  # Skip invalid bytes silently
+                        # Apply XOR decryption if key provided
+                        if decode_key is not None:
+                            result['decryption_key_used'] = True
+                            try:
+                                message = xor_decrypt(message, decode_key)
+                            except Exception:
+                                result['error'] = "Decryption failed - possible wrong key"
                         
-                        # Validate if this is real steganography or false positive
-                        if is_valid_steganography(message, bits_position, total_bits):
-                            # Valid steganography detected!
-                            result['entropy_score'] = round(calculate_entropy_from_bits(extracted_bits_list), 4)
-                            
-                            # Apply XOR decryption if key provided
-                            if decode_key is not None:
-                                result['decryption_key_used'] = True
-                                try:
-                                    message = xor_decrypt(message, decode_key)
-                                except Exception:
-                                    result['error'] = "Decryption failed - possible wrong key"
-                            
-                            result['hidden_message'] = message
-                            result['has_hidden_data'] = True
-                            result['status'] = 'success'
-                            return result
-                        else:
-                            # False positive detected - stop scanning, but log entropy up to here
-                            result['entropy_score'] = round(calculate_entropy_from_bits(extracted_bits_list), 4)
-                            result['hidden_message'] = f"No hidden message detected (False positive EOF). Entropy: {result['entropy_score']:.4f}"
-                            result['has_hidden_data'] = False
-                            result['status'] = 'success'
-                            return result
+                        result['hidden_message'] = message
+                        result['has_hidden_data'] = True
+                        result['status'] = 'success'
+                        return result
+                    else:
+                        # False positive detected - stop scanning, but log entropy up to here
+                        result['entropy_score'] = round(calculate_entropy_from_bits(extracted_bits_list), 4)
+                        result['hidden_message'] = f"No hidden message detected (False positive EOF). Entropy: {result['entropy_score']:.4f}"
+                        result['has_hidden_data'] = False
+                        result['status'] = 'success'
+                        return result
         
         # Scanned entire image, no EOF marker found at all
         # Step 2: Advanced Statistical Fallback (Entropy Analysis)

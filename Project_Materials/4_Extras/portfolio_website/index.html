@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Steganography Detection Tool</title>
+    <meta name="description" content="A professional portfolio showcasing the SOC Steganography Detection Tool">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="logo">SOC Stego</div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#problem">Problem</a></li>
+            <li><a href="#solution">Solution</a></li>
+            <li><a href="#methodology">Methodology</a></li>
+            <li><a href="#results">Results</a></li>
+            <li><a href="#team">Team</a></li>
+            <li>
+                <button class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Mode">☀️</button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Project Title & Introduction -->
+    <section id="hero">
+        <div class="hero-content">
+            <h1>SOC-Grade Image<br>Steganography Detection Tool</h1>
+            <p>Uncovering the hidden threats in plain sight. A comprehensive solution for Security Operations Centers to detect and analyze steganographic anomalies in digital media.</p>
+        </div>
+        <img src="assets/HERO (Top Section).jpg" alt="SOC Steganography Dashboard Hero" class="hero-image">
+    </section>
+
+    <!-- Problem Statement -->
+    <section id="problem" class="grid-2-col">
+        <div class="image-box">
+            <img src="assets/PROBLEM SECTION Your PPT Hidden in Plain Sight.jpg" alt="Steganography Problem Statement">
+        </div>
+        <div class="content-box glass-panel">
+            <h3>The Critical Blindspot in Cyber Security</h3>
+            <p><strong>Hiding in Plain Sight:</strong> Derived from Greek: <em>Steganos</em> (Hidden) and <em>Graphien</em> (Writing). It is the practice of burying secret data within normal, digital pixels. It bypasses visual detection as the human eye cannot see the difference.</p>
+            <ul>
+                <li>Corporate firewalls primarily scan the "outside" of files (headers/extensions).</li>
+                <li>Hackers are adapting by hiding malicious code <em>inside</em> approved media.</li>
+                <li>Traditional Antiviruses pass infected images as "Safe".</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Solution / Architecture -->
+    <section id="solution" class="grid-2-col">
+        <div class="content-box glass-panel">
+            <h3>The Three Pillars of the Project</h3>
+            <ul>
+                <li><strong>The Front-End (GUI):</strong> A highly responsive user dashboard built in Python Tkinter.</li>
+                <li><strong>The Back-End (Engine):</strong> A powerful mathematical analysis engine (`image_stego_engine.py`).</li>
+                <li><strong>The Bridge (Threading):</strong> Asynchronous background workers to prevent system freezing.</li>
+            </ul>
+        </div>
+        <div class="image-box">
+            <img src="assets/SOLUTION ENGINE SECTION.jpg" alt="Solution Engine Architecture">
+        </div>
+    </section>
+
+    <!-- Methodology -->
+    <section id="methodology">
+        <h2 class="section-title">Our <span>Methodology</span></h2>
+        
+        <div class="features-grid" style="margin-bottom: 4rem;">
+            <div class="feature-card glass-panel">
+                <h4>Least Significant Bit (LSB) Extraction</h4>
+                <p>Images consist of RGB (Red, Green, Blue) pixels. The tool targets the "8th bit" of each color value. It rips out these hidden 1s and 0s and reassembles the hacker's original message.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <h4>The "EOF" Marker Logic</h4>
+                <p>Extracting bits carelessly results in digital garbage. Our algorithm hunts for a 16-bit signature: <code>End of File (EOF)</code>. Once found, extraction stops securely.</p>
+            </div>
+            <div class="feature-card glass-panel">
+                <h4>Shannon Entropy Detection</h4>
+                <p>Advanced hackers delete EOF signatures to avoid detection. To counter this, we integrated <strong>Claude Shannon’s Entropy Theory</strong>. Encrypted payloads yield massive entropy scores (>= 7.5).</p>
+            </div>
+        </div>
+
+        <div class="gallery">
+            <div class="gallery-item">
+                <div class="glass-panel content-box" style="width: 100%; text-align: center;">
+                    <p>Our approach combines static metadata analysis, structural integrity checks, and heuristic string extraction to form a comprehensive analysis flow.</p>
+                </div>
+                <img src="assets/METHODOLOGY.jpg" alt="Methodology Flowchart">
+            </div>
+        </div>
+    </section>
+
+    <!-- Results & Outcomes -->
+    <section id="results">
+        <h2 class="section-title">Results & <span>Outcomes</span></h2>
+        <div class="gallery">
+            <div class="gallery-item">
+                <img src="assets/RESULTS SECTION CRITICAL.jpg" alt="Critical Results Overview">
+            </div>
+            
+            <div class="grid-2-col" style="margin-top: 3rem;">
+                <div class="image-box">
+                    <img src="assets/Dual scan Proof Mechanism.png" alt="Dual Scan Proof Mechanism">
+                </div>
+                <div class="content-box glass-panel">
+                    <h3>The "Dual-Scan" Proof Mechanism</h3>
+                    <ul>
+                        <li><strong>Scan 1:</strong> The Carrier Image passes as "Clean" globally.</li>
+                        <li><strong>Scan 2:</strong> The Extracted Script flags as "Critical Malware" globally!</li>
+                    </ul>
+                    <p>This provides solid proof that steganography works, and our tool effectively solves it.</p>
+                </div>
+            </div>
+
+            <div class="grid-2-col" style="margin-top: 3rem;">
+                <div class="content-box glass-panel">
+                    <h3>The VirusTotal API Integration</h3>
+                    <p>Extracting a script is great, but proving it's a virus requires validation. The tool connects securely via API to VirusTotal's 94 global engines, providing instant, real-world threat scoring.</p>
+                </div>
+                <div class="image-box">
+                    <img src="assets/Virus_total_api_integration.png" alt="VirusTotal Integration">
+                </div>
+            </div>
+
+            <div class="grid-2-col" style="margin-top: 3rem;">
+                <div class="image-box">
+                    <img src="assets/a proffesional analyst dashboard.png" alt="Analyst Dashboard">
+                </div>
+                <div class="content-box glass-panel">
+                    <h3>A Professional Analyst Dashboard</h3>
+                    <p>Provides instant visual alerts (Green = Clean, Red = Critical Threat). Shows exact Pixel Dimensions, File Hashes, and the Extracted Payload Text. Includes Two Modes: "Single Targeted Analysis" and "Batch Radar Analysis".</p>
+                </div>
+            </div>
+            
+            <div class="grid-2-col" style="margin-top: 3rem;">
+                <div class="content-box glass-panel">
+                    <h3>Built to Handle Stress</h3>
+                    <p>Processing 5,000 images on a main UI thread causes freezing. We built a "Dual-Lane" processing system using <code>concurrent.futures</code>. The GUI delegates heavy math to invisible background workers.</p>
+                </div>
+                <div class="image-box">
+                    <img src="assets/multi_scan_Buit to handle stress_.png" alt="Multi-Scan Architecture">
+                </div>
+            </div>
+            
+            <div class="grid-2-col" style="margin-top: 3rem;">
+                <div class="image-box">
+                    <img src="assets/automated foresnsic auditing.png" alt="Forensic Auditing">
+                </div>
+                <div class="content-box glass-panel">
+                    <h3>Automated Forensic Auditing</h3>
+                    <p>Security teams require strict legal evidence chains. The tool automatically compiles findings into sanitized CSV logs containing: File Hash, Timestamp, Threat Status, and Entropy Score.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Timeline -->
+    <section id="how-it-works">
+        <h2 class="section-title">How It <span>Works</span></h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-content glass-panel">
+                    <img src="assets/ingestion_upload.png" alt="Ingestion" class="timeline-icon">
+                    <div>
+                        <h4>Step 1: Ingestion</h4>
+                        <p>The SOC analyst loads the suspect image batch into the tool. The GUI handles hundreds of files instantly without stuttering.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content glass-panel">
+                    <img src="assets/pixel_analysis_entropy.png" alt="Pixel Analysis" class="timeline-icon">
+                    <div>
+                        <h4>Step 2: Deep Pixel Math</h4>
+                        <p>The core engine extracts the Least Significant Bits (LSB) and calculates Shannon Entropy to detect hidden, encrypted payloads.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content glass-panel">
+                    <img src="assets/api_validation.png" alt="API Validation" class="timeline-icon">
+                    <div>
+                        <h4>Step 3: Global Validation</h4>
+                        <p>If a script or payload is found, the system securely hashes it and pings the VirusTotal API to cross-reference against 94 global security vendors.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-content glass-panel">
+                    <img src="assets/report_generation.png" alt="Reporting" class="timeline-icon">
+                    <div>
+                        <h4>Step 4: Triage & Reporting</h4>
+                        <p>Findings are automatically logged into sanitized CSV reports, providing an intact legal evidence chain for the forensic team.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Architecture Deep Dive -->
+    <section id="architecture">
+        <h2 class="section-title">Technical <span>Architecture</span></h2>
+        <div class="grid-2-col">
+            <div class="content-box">
+                <p style="font-size: 1.1rem; margin-bottom: 2rem;">The tool is engineered from the ground up using a modular architecture to separate the heavy mathematical lifting from the user interface.</p>
+                <div class="tech-grid">
+                    <div class="tech-card glass-panel">
+                        <h4>Python 3.x</h4>
+                        <p>Core Language powering the entire application logic.</p>
+                    </div>
+                    <div class="tech-card glass-panel">
+                        <h4>Tkinter</h4>
+                        <p>Provides the highly responsive Graphical User Interface.</p>
+                    </div>
+                    <div class="tech-card glass-panel">
+                        <h4>concurrent.futures</h4>
+                        <p>Enables asynchronous multi-threading to handle massive batch scans.</p>
+                    </div>
+                    <div class="tech-card glass-panel">
+                        <h4>REST APIs</h4>
+                        <p>Secure webhook integration with VirusTotal threat intelligence.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="image-box">
+                <img src="assets/system_architecture.png" alt="System Architecture">
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section id="use-cases">
+        <h2 class="section-title">Real-World <span>Use Cases</span></h2>
+        <div class="use-case-grid">
+            <div class="use-case-card glass-panel">
+                <img src="assets/insider_threat.png" alt="Corporate Insider Threats" class="use-case-img">
+                <div class="use-case-content">
+                    <h4>Corporate Insider Threats</h4>
+                    <p>Detecting employees exfiltrating sensitive intellectual property or source code by burying it inside innocent-looking memes or marketing materials.</p>
+                </div>
+            </div>
+            <div class="use-case-card glass-panel">
+                <img src="assets/digital_forensics.png" alt="Digital Forensics" class="use-case-img">
+                <div class="use-case-content">
+                    <h4>Law Enforcement Forensics</h4>
+                    <p>Discovering hidden communication channels, illicit materials, or coordinated attack plans in devices confiscated during raids.</p>
+                </div>
+            </div>
+            <div class="use-case-card glass-panel">
+                <img src="assets/malware_lab.png" alt="Malware Analysis Labs" class="use-case-img">
+                <div class="use-case-content">
+                    <h4>Malware Analysis Labs</h4>
+                    <p>Automating the unpacking and triage process of complex steganographic droppers and advanced persistent threats (APTs).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Benchmarks -->
+    <section id="performance">
+        <h2 class="section-title">Performance <span>Benchmarks</span></h2>
+        <div class="grid-2-col">
+            <div class="image-box">
+                <img src="assets/performance_chart.png" alt="Performance Chart">
+            </div>
+            <div class="content-box glass-panel">
+                <h3>Built for Scale</h3>
+                <p>Traditional forensic tools often process files sequentially, locking up the user interface and taking enormous amounts of time for large directories.</p>
+                <br>
+                <p>By implementing a "Dual-Lane" architecture with Python's <code>concurrent.futures</code> thread pool, the SOC Stego tool delegates the intense mathematical pixel analysis to invisible background workers.</p>
+                <br>
+                <p><strong>Result:</strong> A dramatic decrease in processing time, allowing SOC analysts to scan thousands of images seamlessly without GUI freezing or crashes.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq">
+        <h2 class="section-title">Frequently Asked <span>Questions</span></h2>
+        <div class="faq-container">
+            <button class="accordion">What is Shannon Entropy?</button>
+            <div class="panel">
+                <p>Claude Shannon's Entropy Theory measures the randomness or unpredictability of data. Normal images have a relatively low and predictable entropy. When data is encrypted and hidden inside an image, it introduces high levels of randomness. Our tool flags any image with an entropy score of 7.5 or higher as highly suspicious.</p>
+            </div>
+
+            <button class="accordion">Why not just use regular Antivirus?</button>
+            <div class="panel">
+                <p>Standard Antivirus (AV) and Next-Gen Firewalls (NGFW) primarily rely on signature-based detection and file extension scanning. Steganography hides the malicious payload inside the pixel data of an otherwise perfectly valid image file (like a PNG or JPG). Because the file structure is intact, traditional AV passes it as "Safe".</p>
+            </div>
+
+            <button class="accordion">What file formats are supported?</button>
+            <div class="panel">
+                <p>The current iteration of the SOC Steganography Detection Tool focuses exclusively on Image Steganography, officially supporting PNG, JPG, JPEG, and BMP file formats. Future iterations will expand to support audio (WAV, MP3) and video (MP4) analysis.</p>
+            </div>
+            
+            <button class="accordion">How does the VirusTotal API work in this context?</button>
+            <div class="panel">
+                <p>When the tool successfully extracts a hidden payload (like a PowerShell script or a malicious URL), it automatically hashes the extracted content (SHA-256) and sends that hash to the VirusTotal API. VirusTotal checks this against 94 global security vendors to provide an instant verdict on whether the hidden data is known malware.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conclusion / Future Scope -->
+    <section id="conclusion" class="glass-panel" style="margin: 0 10%; min-height: auto; padding: 4rem;">
+        <h2 class="section-title" style="margin-bottom: 2rem;">Conclusion & <span>Real-World Impact</span></h2>
+        <ul>
+            <li style="margin-bottom: 1rem; font-size: 1.1rem;">Successfully exposes Signatureless Steganography.</li>
+            <li style="margin-bottom: 1rem; font-size: 1.1rem;">Combines Deep Pixel Math, Multi-threading, and API Web logic.</li>
+            <li style="margin-bottom: 1rem; font-size: 1.1rem;">Provides a scalable solution for corporate network security.</li>
+        </ul>
+    </section>
+
+    <!-- Project Presentation & Code -->
+    <section id="presentation">
+        <div class="cta-box glass-panel">
+            <h2 class="section-title" style="margin-bottom: 1rem;">Project <span>Resources</span></h2>
+            <p>Download the full presentation slide deck or view the source code on GitHub.</p>
+            <a href="assets/STEGO_PPT_29_APRIL_.pptx" class="btn" download>Download PPT</a>
+            <a href="https://github.com/KHAIRNAR-TANMAY-DEVIDAS/soc-stego.git" target="_blank" class="btn btn-secondary">View on GitHub</a>
+        </div>
+    </section>
+
+    <!-- Team Details & Footer -->
+    <footer id="team">
+        <h2 class="section-title" style="margin-top: 2rem; margin-bottom: 3rem;">The <span>Team</span></h2>
+        
+        <div class="team-grid">
+            <div class="team-card glass-panel">
+                <div class="avatar">T</div>
+                <h4>Tanmay Devidas Khairnar</h4>
+                <p class="role">Project Member</p>
+                <p class="roll">Roll No: 27</p>
+            </div>
+            <div class="team-card glass-panel">
+                <div class="avatar">R</div>
+                <h4>Ritesh Rajendrasingh Pardeshi</h4>
+                <p class="role">Project Member</p>
+                <p class="roll">Roll No: 41</p>
+            </div>
+        </div>
+
+        <div class="project-info glass-panel" style="max-width: 600px; margin: 3rem auto;">
+            <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Project Details</h4>
+            <p><strong>Project Guide:</strong> Prof. Ranjeet Pathak</p>
+            <p><strong>Department:</strong> B.E E&TC Engineering (2025-2026)</p>
+            <p><strong>Project Group:</strong> No. 24</p>
+            <p><strong>Domain:</strong> Cyber Security</p>
+        </div>
+
+        <div class="references" style="margin-top: 4rem;">
+            <p style="margin-top: 2rem; font-size: 0.8rem; color: var(--text-main);">&copy; 2026 SOC Steganography Project. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Theme Toggle Script -->
+    <script>
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Check for saved theme preference in localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+            themeToggleBtn.textContent = '🌙';
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                themeToggleBtn.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeToggleBtn.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // FAQ Accordion Script
+        var acc = document.getElementsByClassName("accordion");
+        var i;
+
+        for (i = 0; i < acc.length; i++) {
+            acc[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var panel = this.nextElementSibling;
+                if (panel.style.maxHeight) {
+                    panel.style.maxHeight = null;
+                } else {
+                    panel.style.maxHeight = panel.scrollHeight + "px";
+                } 
+            });
+        }
+    </script>
+</body>
+</html>

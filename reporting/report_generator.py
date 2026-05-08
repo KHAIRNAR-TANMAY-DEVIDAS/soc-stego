@@ -261,3 +261,135 @@ def compare_csv_logs(csv_paths):
     except Exception as e:
         comparison['error'] = f"Comparison failed: {str(e)}"
         return comparison
+
+
+def format_single_analysis_text(analysis_result):
+    """
+    Formats a single analysis result into a structured text report.
+    """
+    lines = []
+    lines.append("=" * 70)
+    lines.append("SOC STEGANOGRAPHY DETECTION - ANALYSIS REPORT")
+    lines.append("=" * 70)
+    lines.append("")
+    
+    # 1. General File Information
+    lines.append("[ 1. GENERAL FILE INFORMATION ]")
+    lines.append("-" * 70)
+    file_path = analysis_result.get('file_path', 'N/A')
+    file_name = os.path.basename(file_path) if file_path != 'N/A' else 'N/A'
+    lines.append(f"File Name:        {file_name}")
+    lines.append(f"Target Path:      {file_path}")
+    lines.append(f"File Size:        {analysis_result.get('file_size', 0):,} bytes")
+    lines.append(f"SHA-256 Checksum: {analysis_result.get('file_hash', 'N/A')}")
+    lines.append(f"Scan Timestamp:   {analysis_result.get('timestamp', 'N/A')}")
+    lines.append("")
+    
+    # 2. Image Metadata
+    meta = analysis_result.get('metadata', {})
+    lines.append("[ 2. IMAGE METADATA ]")
+    lines.append("-" * 70)
+    lines.append(f"Format:           {meta.get('format', 'N/A')}")
+    lines.append(f"Dimensions:       {meta.get('dimensions', 'N/A')}")
+    lines.append(f"Color Mode:       {meta.get('mode', 'N/A')}")
+    lines.append(f"Total Pixels:     {meta.get('total_pixels', 0):,}")
+    lines.append(f"Max LSB Capacity: {meta.get('max_capacity_bytes', 0):,} bytes")
+    lines.append("")
+    
+    # 3. Steganography & Anomaly Detection
+    lines.append("[ 3. STEGANOGRAPHY & ANOMALY DETECTION ]")
+    lines.append("-" * 70)
+    status = analysis_result.get('status', 'unknown')
+    has_hidden = analysis_result.get('has_hidden_data', False)
+    
+    if status == 'error':
+        det_status = "ERROR - Analysis Failed"
+    elif has_hidden:
+        det_status = "CRITICAL THREAT - Hidden Payload Found"
+    else:
+        det_status = "CLEAN - No Steganography Detected"
+        
+    lines.append(f"Detection Status: {det_status}")
+    
+    entropy = analysis_result.get('entropy_score', 0.0)
+    lines.append(f"LSB Entropy:      {entropy:.4f}")
+    
+    from config import ENTROPY_THRESHOLD
+    if entropy >= ENTROPY_THRESHOLD:
+        lines.append(f"Entropy Assess.:  High Randomness Detected (Threshold: {ENTROPY_THRESHOLD})")
+    else:
+        lines.append(f"Entropy Assess.:  Normal Range (Threshold: {ENTROPY_THRESHOLD})")
+        
+    lines.append(f"Hidden Payload:   {'POSITIVE' if has_hidden else 'NEGATIVE'}")
+    lines.append(f"Decryption Used:  {'Yes' if analysis_result.get('decryption_key_used', False) else 'No'}")
+    
+    if has_hidden:
+        lines.append("\n[ PAYLOAD PREVIEW ]")
+        lines.append("-" * 70)
+        msg = analysis_result.get('hidden_message', '')
+        # Truncate for text report if too long, or print full? Text report can have full.
+        lines.append(msg)
+        lines.append("-" * 70)
+        
+    lines.append("")
+    
+    # 4. Global Threat Intelligence
+    lines.append("[ 4. GLOBAL THREAT INTELLIGENCE (VirusTotal) ]")
+    lines.append("-" * 70)
+    vt_results = analysis_result.get('vt_results', None)
+    if vt_results:
+        carrier_score = vt_results.get('carrier_score', 'N/A')
+        lines.append(f"Carrier Image:    {carrier_score}")
+        payload_score = vt_results.get('payload_score', 'N/A')
+        if payload_score != 'N/A':
+            lines.append(f"Payload Data:     {payload_score}")
+    else:
+        lines.append("No Threat Intel scan performed for this artifact.")
+        
+    lines.append("")
+    lines.append("=" * 70)
+    lines.append("END OF REPORT")
+    lines.append("=" * 70)
+    return "\n".join(lines)
+
+
+def export_single_analysis_to_txt(analysis_result, txt_path):
+    """Exports a single analysis result to a text file."""
+    try:
+        report_text = format_single_analysis_text(analysis_result)
+        os.makedirs(os.path.dirname(txt_path) or '.', exist_ok=True)
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(report_text)
+        return {'success': True, 'txt_path': txt_path}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+
+def format_batch_analysis_text(batch_results):
+    """Formats multiple analysis results into a structured text report."""
+    lines = []
+    lines.append("=" * 70)
+    lines.append("SOC STEGANOGRAPHY DETECTION - BATCH ANALYSIS REPORT")
+    lines.append("=" * 70)
+    lines.append(f"Total Targets Analyzed: {len(batch_results)}")
+    lines.append("")
+    
+    for idx, res in enumerate(batch_results, 1):
+        lines.append(f"--- TARGET {idx} of {len(batch_results)} ---")
+        lines.append(format_single_analysis_text(res))
+        lines.append("\n")
+        
+    return "\n".join(lines)
+
+
+def export_batch_analysis_to_txt(batch_results, txt_path):
+    """Exports batch analysis results to a text file."""
+    try:
+        report_text = format_batch_analysis_text(batch_results)
+        os.makedirs(os.path.dirname(txt_path) or '.', exist_ok=True)
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(report_text)
+        return {'success': True, 'txt_path': txt_path}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
