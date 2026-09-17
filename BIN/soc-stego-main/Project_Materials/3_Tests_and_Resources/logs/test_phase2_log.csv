@@ -1,0 +1,7 @@
+timestamp,file_path,file_name,file_hash,file_size_bytes,image_format,image_dimensions,image_mode,max_capacity_bytes,has_hidden_data,hidden_message_length,hidden_message_preview,decryption_key_used,analysis_status,error_message
+2026-02-14T06:15:41.111331,tests/samples/suspicious_image.png,suspicious_image.png,a1b2c3d4e5f6suspicious,53200,PNG,800x600,RGB,180000,True,69,This is a secret message hidden in the image using LSB steganography!,No,success,
+2026-02-14T06:15:41.113002,tests/samples/clean_photo1.jpg,clean_photo1.jpg,a1b2c3d4e5f6clean_phot,52800,JPEG,800x600,RGB,180000,False,0,No hidden message detected,No,success,
+2026-02-14T06:15:41.113013,tests/samples/clean_photo2.jpg,clean_photo2.jpg,a1b2c3d4e5f6clean_phot,52800,JPEG,800x600,RGB,180000,False,0,No hidden message detected,No,success,
+2026-02-14T06:15:41.113020,tests/samples/stego_image1.png,stego_image1.png,a1b2c3d4e5f6stego_imag,52800,PNG,800x600,RGB,180000,True,23,Hidden payload detected,No,success,
+2026-02-14T06:15:41.113027,tests/samples/landscape.bmp,landscape.bmp,a1b2c3d4e5f6landscape,52500,JPEG,800x600,RGB,180000,False,0,No hidden message detected,No,success,
+2026-02-14T06:15:41.113032,tests/samples/encrypted_stego.png,encrypted_stego.png,a1b2c3d4e5f6encrypted_,53100,PNG,800x600,RGB,180000,True,34,XOR encrypted message: @#$%^&*()_+,No,success,

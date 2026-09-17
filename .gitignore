@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Local credentials & secrets (NEVER COMMIT)
+vt_api_key.txt
+api_key.txt
+.env
+*.env
+
+# Local logs & generated reports
+logs1/*.csv
+logs1/*.txt
+logs1/*.png
+logs1/stego_out_*.png
+
+# OS / Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

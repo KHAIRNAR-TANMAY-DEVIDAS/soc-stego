@@ -1,0 +1,3 @@
+timestamp,file_path,file_name,file_hash,file_size_bytes,image_format,image_dimensions,image_mode,max_capacity_bytes,has_hidden_data,hidden_message_length,hidden_message_preview,decryption_key_used,analysis_status,error_message
+2026-02-14T09:14:37.554025,D:/Projects/Steganography-Project-B.E-2025/stegoTS1.png,stegoTS1.png,fcfcae8d3a61b35ca608ab6baf58ec5d70e546450a4885dfbdd8807ee794a072,2255550,PNG,2560x1440,RGBA,1382400,True,20,"SO-:?SG 
+;>qlf mx#+",No,success,

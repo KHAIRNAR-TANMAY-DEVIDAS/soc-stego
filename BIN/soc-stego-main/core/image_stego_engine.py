@@ -189,7 +189,6 @@ def analyze_image(file_path, decode_key=None):
         
         # Load image
         image = Image.open(file_path)
-        image = image.convert("RGBA")
         
         # Extract basic metadata
         result['metadata'] = {
@@ -212,16 +211,15 @@ def analyze_image(file_path, decode_key=None):
         total_bits = result['metadata']['max_capacity_bits']
 
         # ---------------------------------------------------------
-        # FAST PATH: Check for the new Steganography Tool format (Header-based: !3sBI)
+        # FAST PATH: Check for the new Steganography Tool format (Header-based: !BI)
         # ---------------------------------------------------------
         if hasattr(image, 'getdata'):
             try:
                 from core.stego_tool_engine import decode_message
                 test_output = decode_message(file_path, password=None) # Try to extract plain message
-                if len(test_output) > 0 and is_valid_steganography(test_output, 64 + len(test_output.encode()) * 8, total_bits):
+                if len(test_output) > 0 and is_valid_steganography(test_output, 40 + len(test_output.encode()) * 8, total_bits):
                     result['has_hidden_data'] = True
                     result['status'] = 'success'
-                    result['raw_payload'] = test_output
                     result['hidden_message'] = f"[V2 Stego Tool Format] {test_output}"
                     # Return early, skip full entropy scan
                     return result
@@ -231,7 +229,7 @@ def analyze_image(file_path, decode_key=None):
             # Try to validate Header Manually
             try:
                 import struct
-                header_pixels = list(image.getdata())[:22] # Need 64 bits (8 bytes), 22 pixels * 3 = 66 bits
+                header_pixels = list(image.getdata())[:14] # Need ~40 bits, 14 pixels * 3 = 42 bits
                 bits = []
                 for r, g, b, a in header_pixels:
                     bits.extend([r & 1, g & 1, b & 1])
@@ -244,9 +242,9 @@ def analyze_image(file_path, decode_key=None):
                         if count == 8: out.append(b); b = 0; count = 0
                     return bytes(out)
                 
-                header_bytes = _bits_to_bytes(bits[:64])
-                sig, flag, length = struct.unpack("!3sBI", header_bytes)
-                if sig == b'SOC' and flag in (0, 1) and 0 < length < result['metadata']['max_capacity_bytes']:
+                header_bytes = _bits_to_bytes(bits[:40])
+                flag, length = struct.unpack("!BI", header_bytes)
+                if flag in (0, 1) and 0 < length < result['metadata']['max_capacity_bytes']:
                     if flag == 1:
                         result['has_hidden_data'] = True
                         result['status'] = 'success'
@@ -303,7 +301,6 @@ def analyze_image(file_path, decode_key=None):
                             except Exception:
                                 result['error'] = "Decryption failed - possible wrong key"
                         
-                        result['raw_payload'] = message
                         result['hidden_message'] = message
                         result['has_hidden_data'] = True
                         result['status'] = 'success'
@@ -324,12 +321,12 @@ def analyze_image(file_path, decode_key=None):
         from config import ENTROPY_THRESHOLD
         if entropy_score >= ENTROPY_THRESHOLD:
             # Mathematical anomaly detected
-            result['has_hidden_data'] = False  # Avoid false positives by not strictly flagging
+            result['has_hidden_data'] = True
             result['status'] = 'success'
             result['hidden_message'] = (
                 f"WARNING: High Randomness Detected.\n"
                 f"No EOF signature found, but LSB Shannon Entropy is {entropy_score:.4f} (Threshold: {ENTROPY_THRESHOLD}).\n"
-                f"This mathematical anomaly indicates a potential encrypted or compressed payload, but is not definitive."
+                f"This mathematical anomaly indicates a highly probable encrypted or compressed steganographic payload."
             )
             return result
         else:

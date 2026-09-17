@@ -1,0 +1,4 @@
+timestamp,file_path,file_name,file_hash,file_size_bytes,image_format,image_dimensions,image_mode,max_capacity_bytes,has_hidden_data,hidden_message_length,hidden_message_preview,decryption_key_used,analysis_status,error_message
+2026-02-14T07:46:07.237807,test_images/stegoTS1.png,stegoTS1.png,fcfcae8d3a61b35ca608ab6baf58ec5d70e546450a4885dfbdd8807ee794a072,2255550,PNG,2560x1440,RGBA,1382400,True,20, ;H]Pt;HJ	t>RIP_,No,success,
+2026-02-14T07:46:07.299515,test_images/stegoTS2.png,stegoTS2.png,dccd24e18660b0e6cf25bb7b2d277662e44a59e64f6612bb8d0935f2fc97de07,2255562,PNG,2560x1440,RGBA,1382400,True,20,this is secret msg 2,No,success,
+2026-02-14T07:46:07.336401,test_images/setgoTS3.png,setgoTS3.png,aab287bc73407f76e16d974375bca57c9e9243e953d8989f57705b0618e501e6,4387218,PNG,2560x1440,RGBA,1382400,True,20,This is secret msg 3,No,success,

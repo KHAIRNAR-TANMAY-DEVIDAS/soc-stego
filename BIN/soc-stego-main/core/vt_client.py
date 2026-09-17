@@ -12,41 +12,16 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import VT_API_KEY, VT_API_URL
 
-def get_active_vt_key():
-    """Retrieve personal VirusTotal API key from environment, local file, or config."""
-    # 1. Check environment variable
-    env_key = os.getenv("VT_API_KEY")
-    if env_key and env_key.strip():
-        return env_key.strip()
-
-    # 2. Check local untracked file (vt_api_key.txt)
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    key_file = os.path.join(base_dir, "vt_api_key.txt")
-    if os.path.exists(key_file):
-        try:
-            with open(key_file, "r", encoding="utf-8") as f:
-                content = f.read().strip()
-                if content:
-                    return content
-        except Exception:
-            pass
-
-    # 3. Fallback to config.py if not placeholder
-    if VT_API_KEY and not VT_API_KEY.startswith("Enter") and not VT_API_KEY.startswith("YOUR_"):
-        return VT_API_KEY.strip()
-
-    return None
-
 def query_virustotal_hash(hash_str, api_key=None):
     """
     Query VT for a specific hash string.
     Returns structured results: {'success': bool, 'data': dict, 'error': str}
     """
-    key = api_key or get_active_vt_key()
+    key = api_key or VT_API_KEY
     result = {'success': False, 'data': None, 'error': None, 'status_code': None}
     
-    if not key:
-        result['error'] = "Missing VT API Key. Please add your key to 'vt_api_key.txt' or set VT_API_KEY environment variable."
+    if not key or key == "":
+        result['error'] = "Missing VT API Key. Please add it to config.py"
         return result
         
     headers = {"x-apikey": key}

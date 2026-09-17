@@ -16,7 +16,7 @@ except Exception:  # pragma: no cover - cryptography may be optional
 
 
 _SALT_LEN = 16
-_HEADER_FMT = "!3sBI"  # 3 bytes signature ('SOC'), 1 byte flag, 4 byte unsigned int length
+_HEADER_FMT = "!BI"  # 1 byte flag, 4 byte unsigned int length
 
 
 def _derive_key(password: str, salt: bytes) -> bytes:
@@ -82,8 +82,8 @@ def encode_message(image_path: str, secret_message: str, output_path: str, passw
         payload = _encrypt(payload, password)
         encrypted_flag = 1
 
-    # Header: 3 bytes signature, 1 byte flag, 4 bytes length
-    header = struct.pack(_HEADER_FMT, b'SOC', encrypted_flag, len(payload))
+    # Header: 1 byte flag, 4 bytes length
+    header = struct.pack(_HEADER_FMT, encrypted_flag, len(payload))
     full = header + payload
     bits = list(_bytes_to_bits(full))
 
@@ -142,13 +142,11 @@ def decode_message(image_path: str, password: Optional[str] = None) -> str:
             
     bit_iter = bit_generator()
 
-    # First 3+1+4 bytes => 64 bits header
-    header_bits = [next(bit_iter) for _ in range(64)]
+    # First 1+4 bytes => 40 bits header
+    header_bits = [next(bit_iter) for _ in range(40)]
     header_bytes = _bits_to_bytes(header_bits)
     try:
-        sig, flag, length = struct.unpack(_HEADER_FMT, header_bytes)
-        if sig != b'SOC':
-            raise ValueError("No valid header found in image")
+        flag, length = struct.unpack(_HEADER_FMT, header_bytes)
     except struct.error:
         raise ValueError("No valid header found in image")
 

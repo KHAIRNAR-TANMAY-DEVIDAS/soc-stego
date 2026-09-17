@@ -1,0 +1,2 @@
+timestamp,file_path,file_name,file_hash,file_size_bytes,image_format,image_dimensions,image_mode,max_capacity_bytes,entropy_score,has_hidden_data,hidden_message_length,hidden_message_preview,decryption_key_used,analysis_status,error_message
+2026-05-04T13:48:12.127511,C:/Users/tanma/Downloads/soc-stego-main/test_images/weaponized_eicar.png,weaponized_eicar.png,1b23683041f403ddf8875f9be0864c75bc09179a5210c4b18605f75960f95f31,449,PNG,100x100,RGB,3750,4.9298,True,60,X5O!P%@AP[4\PZX54(P^)7CC)7}-STANDARD-ANTIVIRUS-TEST-FILE!+H*,No,success,

@@ -8,12 +8,11 @@ from datetime import datetime
 
 # Application Information
 APP_NAME = "SOC Steganography Detection Tool"
-APP_VERSION = "v0.1.0"
+APP_VERSION = "1.0.0"
 APP_DESCRIPTION = "Image Steganography Detection and Analysis Tool for SOC Operations"
 
 # VirusTotal API Configuration
-# NOTE: Set your personal API key via 'vt_api_key.txt', environment variable 'VT_API_KEY', or paste below.
-VT_API_KEY = "Enter your personal VirusTotal API Key to enable threat scanning"
+VT_API_KEY = "Enter You VirusTotal API Key Here"  # Placeholder - user must set this
 VT_API_URL = "https://www.virustotal.com/api/v3/files/"
 
 # GUI Configuration
@@ -22,19 +21,15 @@ WINDOW_HEIGHT = 700
 WINDOW_MIN_WIDTH = 800
 WINDOW_MIN_HEIGHT = 600
 
-# Color Scheme (Cyber-SOC Dark Theme)
-COLOR_BACKGROUND = "#0b0f19"     # Deep Charcoal
-COLOR_PRIMARY = "#111827"        # Dark Navy Frame
-COLOR_SECONDARY = "#1f2937"      # Card Surface
-COLOR_BORDER = "#374151"         # Subtle Border
-COLOR_SUCCESS = "#10b981"        # Cyber Emerald/Green (safe/action)
-COLOR_SUCCESS_HOVER = "#059669"  # Green Hover
-COLOR_WARNING = "#f59e0b"        # Amber Warning
-COLOR_DANGER = "#ef4444"         # Cyberpunk Red (threat/alert)
-COLOR_INFO = "#06b6d4"           # Cyan (info/intel)
-COLOR_TEXT = "#f9fafb"           # Bright Crisp Text
-COLOR_TEXT_MUTED = "#9ca3af"     # Muted Subtext
-COLOR_ACCENT = "#3b82f6"         # Blue Accent
+# Color Scheme (Matrix Hacker Theme)
+COLOR_PRIMARY = "#0d1117"        # Dark background
+COLOR_SECONDARY = "#161b22"      # Lighter frame background
+COLOR_SUCCESS = "#00FF41"        # Matrix Green (clean/safe)
+COLOR_WARNING = "#FF9900"        # Orange (suspicious)
+COLOR_DANGER = "#FF003C"         # Cyberpunk Red (hidden data detected)
+COLOR_INFO = "#00B4D8"           # Cyber Blue (information)
+COLOR_BACKGROUND = "#000000"     # Black
+COLOR_TEXT = "#00FF41"           # Matrix Green text
 FONT_FAMILY = "Consolas"         # Technical font
 
 # File Paths
@@ -90,7 +85,7 @@ MESSAGE_PREVIEW_LENGTH = 100  # Characters to show in preview
 HASH_DISPLAY_LENGTH = 16      # Characters of hash to display in GUI
 
 # Detection Thresholds (for future enhancements)
-ENTROPY_THRESHOLD = 7.99      # Statistical entropy threshold
+ENTROPY_THRESHOLD = 7.5       # Statistical entropy threshold
 LSB_ANOMALY_THRESHOLD = 0.05  # LSB distribution anomaly threshold
 
 # Batch Processing Configuration
