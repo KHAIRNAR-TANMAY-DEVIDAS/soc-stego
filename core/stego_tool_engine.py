@@ -100,16 +100,13 @@ def encode_message(image_path: str, secret_message: str, output_path: str, passw
     bit_iter = iter(bits)
     
     for r, g, b, a in new_pixels:
-        new_r = (r & ~1)
-        new_g = (g & ~1)
-        new_b = (b & ~1)
         try:
-            new_r |= next(bit_iter)
-            new_g |= next(bit_iter)
-            new_b |= next(bit_iter)
+            r = (r & ~1) | next(bit_iter)
+            g = (g & ~1) | next(bit_iter)
+            b = (b & ~1) | next(bit_iter)
         except StopIteration:
             pass
-        modified.append((new_r, new_g, new_b, a))
+        modified.append((r, g, b, a))
 
     # Combine modified pixels and untouched pixels
     final_pixels = modified + pixels[required_pixels:]
@@ -129,8 +126,11 @@ def encode_message(image_path: str, secret_message: str, output_path: str, passw
 def decode_message(image_path: str, password: Optional[str] = None) -> str:
     """Extract hidden message from `image_path`. If `password` provided, will attempt decryption."""
     img = Image.open(image_path)
+    width, height = img.size
+    if width * height * 3 < 64:
+        raise ValueError("Image is too small to contain a steganography header")
+
     img = img.convert("RGBA")
-    
     pixel_data = img.getdata()
     
     # Lazy bit generator

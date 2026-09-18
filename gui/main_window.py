@@ -767,6 +767,7 @@ class SteganographyGUI:
                 self.export_button.configure(state=tk.DISABLED)
                 self.export_txt_button.configure(state=tk.DISABLED)
                 self.vt_button.configure(state=tk.DISABLED)
+                self.file_menu.entryconfig("Export to CSV...", state=tk.DISABLED)
                 self.display_welcome_message()
 
             self.current_image_path = file_path
@@ -1246,6 +1247,7 @@ class SteganographyGUI:
         self.export_button.configure(state=tk.DISABLED)
         self.export_txt_button.configure(state=tk.DISABLED)
         self.vt_button.configure(state=tk.DISABLED)
+        self.file_menu.entryconfig("Export to CSV...", state=tk.DISABLED)
         self.display_welcome_message()
         self.update_status("Target state cleared. Ready for next scan.")
 

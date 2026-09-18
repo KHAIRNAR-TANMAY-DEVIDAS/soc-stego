@@ -59,21 +59,22 @@ def run_verification():
     
     try:
         from core.image_stego_engine import analyze_image, is_valid_steganography, xor_decrypt
-        print("✓ Core module imported successfully")
-        print("  - analyze_image() [Main detection function]")
-        print("  - is_valid_steganography() [7-layer validation]")
-        print("  - xor_decrypt() [Decryption support]")
+        from core.stego_tool_engine import encode_message, decode_message
+        print("[+] Core modules imported successfully")
+        print("    - analyze_image() [Stego analysis & detection]")
+        print("    - is_valid_steganography() [7-layer validation]")
+        print("    - encode_message() / decode_message() [LSB + AES]")
     except ImportError as e:
-        print(f"✗ Error importing core module: {e}")
+        print(f"[-] Error importing core module: {e}")
         sys.exit(1)
     
     try:
         import config
-        print("✓ Configuration module imported successfully")
-        print(f"  - Logs directory: {config.LOGS_DIR}")
-        print(f"  - CSV fields defined: {len(config.CSV_FIELDS)} fields")
+        print("[+] Configuration module imported successfully")
+        print(f"    - Logs directory: {config.LOGS_DIR}")
+        print(f"    - CSV fields defined: {len(config.CSV_FIELDS)} fields")
     except ImportError as e:
-        print(f"✗ Error importing config module: {e}")
+        print(f"[-] Error importing config module: {e}")
         sys.exit(1)
     
     try:
@@ -82,12 +83,12 @@ def run_verification():
             generate_summary_report,
             format_report_text
         )
-        print("✓ Reporting module imported successfully")
-        print("  - log_analysis_to_csv()")
-        print("  - generate_summary_report()")
-        print("  - format_report_text()")
+        print("[+] Reporting module imported successfully")
+        print("    - log_analysis_to_csv()")
+        print("    - generate_summary_report()")
+        print("    - format_report_text()")
     except ImportError as e:
-        print(f"✗ Error importing reporting module: {e}")
+        print(f"[-] Error importing reporting module: {e}")
         sys.exit(1)
     
     # Check if required directories exist
@@ -95,23 +96,22 @@ def run_verification():
     all_dirs_exist = True
     for directory in required_dirs:
         if os.path.exists(directory):
-            print(f"✓ Directory exists: /{directory}")
+            print(f"[+] Directory exists: /{directory}")
         else:
-            print(f"✗ Directory missing: /{directory}")
+            print(f"[-] Directory missing: /{directory}")
             all_dirs_exist = False
     
     print("-" * 60)
     
     if all_dirs_exist:
-        print("\n✅ Core engine components validated!")
-        print("✅ Security audit logging system online!")
-        print("✅ GUI matrix ready!")
+        print("\n[OK] Core engine components validated!")
+        print("[OK] Security audit logging system online!")
+        print("[OK] GUI interface components ready!")
         print("\nAvailable Commands:")
-        print("  python main.py              → Launch GUI (default)")
-        print("  python main.py --verify     → Run this verification")
-        print("  python tests/quick_test.py  → Run automated tests")
+        print("  python main.py          -> Launch GUI dashboard (default)")
+        print("  python main.py --verify -> Run component verification")
     else:
-        print("\n❌ Some directories are missing")
+        print("\n[FAIL] Required directories are missing")
         sys.exit(1)
     
     print("\n" + "=" * 60)

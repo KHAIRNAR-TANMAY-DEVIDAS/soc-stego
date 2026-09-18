@@ -8,6 +8,16 @@ from tkinter import filedialog
 import os
 
 
+def _get_dialog_parent():
+    """Returns an active Tk parent window without creating conflicting roots."""
+    if tk._default_root is not None:
+        return tk._default_root, False
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+    return root, True
+
+
 def select_image_file(initial_dir=None):
     """
     Opens a file dialog to select an image file.
@@ -18,17 +28,13 @@ def select_image_file(initial_dir=None):
     Returns:
         str: Selected file path, or empty string if cancelled
     """
-    # Create a temporary root window (hidden)
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
+    parent, is_temp = _get_dialog_parent()
     
     # Import config for supported formats
     try:
         from config import SUPPORTED_IMAGE_FORMATS
         filetypes = SUPPORTED_IMAGE_FORMATS
     except ImportError:
-        # Fallback if config not available
         filetypes = [
             ("All supported images", "*.png *.jpg *.jpeg *.bmp"),
             ("PNG files", "*.png"),
@@ -37,19 +43,19 @@ def select_image_file(initial_dir=None):
             ("All files", "*.*")
         ]
     
-    # Set initial directory
     if initial_dir is None:
         initial_dir = os.getcwd()
     
-    # Open file dialog
-    file_path = filedialog.askopenfilename(
-        title="Select Image to Analyze",
-        initialdir=initial_dir,
-        filetypes=filetypes
-    )
-    
-    # Clean up temporary root
-    root.destroy()
+    try:
+        file_path = filedialog.askopenfilename(
+            parent=parent,
+            title="Select Image to Analyze",
+            initialdir=initial_dir,
+            filetypes=filetypes
+        )
+    finally:
+        if is_temp:
+            parent.destroy()
     
     return file_path
 
@@ -64,19 +70,20 @@ def select_folder(initial_dir=None):
     Returns:
         str: Selected folder path, or empty string if cancelled
     """
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
+    parent, is_temp = _get_dialog_parent()
     
     if initial_dir is None:
         initial_dir = os.getcwd()
     
-    folder_path = filedialog.askdirectory(
-        title="Select Folder for Batch Analysis",
-        initialdir=initial_dir
-    )
-    
-    root.destroy()
+    try:
+        folder_path = filedialog.askdirectory(
+            parent=parent,
+            title="Select Folder for Batch Analysis",
+            initialdir=initial_dir
+        )
+    finally:
+        if is_temp:
+            parent.destroy()
     
     return folder_path
 
@@ -92,25 +99,26 @@ def save_file_dialog(default_name="report.txt", initial_dir=None):
     Returns:
         str: Selected save path, or empty string if cancelled
     """
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
+    parent, is_temp = _get_dialog_parent()
     
     if initial_dir is None:
         initial_dir = os.getcwd()
     
-    file_path = filedialog.asksaveasfilename(
-        title="Save Report",
-        initialdir=initial_dir,
-        initialfile=default_name,
-        defaultextension=".txt",
-        filetypes=[
-            ("Text files", "*.txt"),
-            ("CSV files", "*.csv"),
-            ("All files", "*.*")
-        ]
-    )
-    
-    root.destroy()
+    try:
+        file_path = filedialog.asksaveasfilename(
+            parent=parent,
+            title="Save Report",
+            initialdir=initial_dir,
+            initialfile=default_name,
+            defaultextension=".txt",
+            filetypes=[
+                ("Text files", "*.txt"),
+                ("CSV files", "*.csv"),
+                ("All files", "*.*")
+            ]
+        )
+    finally:
+        if is_temp:
+            parent.destroy()
     
     return file_path

@@ -189,11 +189,12 @@ def analyze_image(file_path, decode_key=None):
         
         # Load image
         image = Image.open(file_path)
+        orig_format = image.format or os.path.splitext(file_path)[1].replace('.', '').upper()
         image = image.convert("RGBA")
         
         # Extract basic metadata
         result['metadata'] = {
-            'format': image.format,
+            'format': orig_format,
             'mode': image.mode,
             'width': image.size[0],
             'height': image.size[1],
@@ -217,16 +218,17 @@ def analyze_image(file_path, decode_key=None):
         if hasattr(image, 'getdata'):
             try:
                 from core.stego_tool_engine import decode_message
-                test_output = decode_message(file_path, password=None) # Try to extract plain message
+                # Attempt decode with provided decode_key (passphrase) or None
+                test_output = decode_message(file_path, password=decode_key)
                 if len(test_output) > 0 and is_valid_steganography(test_output, 64 + len(test_output.encode()) * 8, total_bits):
                     result['has_hidden_data'] = True
                     result['status'] = 'success'
                     result['raw_payload'] = test_output
+                    result['decryption_key_used'] = bool(decode_key)
                     result['hidden_message'] = f"[V2 Stego Tool Format] {test_output}"
-                    # Return early, skip full entropy scan
                     return result
             except Exception:
-                pass # Failed to decode cleanly or wrong password
+                pass # Failed to decode cleanly, or encrypted without valid key
 
             # Try to validate Header Manually
             try:
@@ -250,7 +252,10 @@ def analyze_image(file_path, decode_key=None):
                     if flag == 1:
                         result['has_hidden_data'] = True
                         result['status'] = 'success'
-                        result['hidden_message'] = "[V2 Stego Tool Format] ENCRYPTED PAYLOAD DETECTED. Requires Password."
+                        if decode_key:
+                            result['hidden_message'] = "[V2 Stego Tool Format] ENCRYPTED PAYLOAD DETECTED. Decryption failed - incorrect passphrase."
+                        else:
+                            result['hidden_message'] = "[V2 Stego Tool Format] ENCRYPTED PAYLOAD DETECTED. Requires Passphrase."
                         return result
             except Exception:
                 pass
