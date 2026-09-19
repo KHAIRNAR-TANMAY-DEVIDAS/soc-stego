@@ -137,6 +137,41 @@ def calculate_entropy_from_bits(bits_list):
         byte_list.append(int("".join(bits_list[i:i+8]), 2))
     return calculate_shannon_entropy(byte_list)
 
+def calculate_image_lsb_entropy(image, sample_limit=262144):
+    """
+    Computes Shannon Entropy of the image's LSB bitstream.
+    Processes up to sample_limit bytes directly using efficient bit shifts.
+    """
+    try:
+        pixel_data = image.getdata()
+        byte_list = bytearray()
+        current_byte = 0
+        bit_count = 0
+        
+        for pixel in pixel_data:
+            channels = pixel[:3] if hasattr(pixel, '__len__') and len(pixel) >= 3 else (pixel if isinstance(pixel, (int, float)) else pixel[0:1])
+            for c in channels:
+                current_byte = (current_byte << 1) | (int(c) & 1)
+                bit_count += 1
+                if bit_count == 8:
+                    byte_list.append(current_byte)
+                    current_byte = 0
+                    bit_count = 0
+                    if sample_limit and len(byte_list) >= sample_limit:
+                        break
+            if sample_limit and len(byte_list) >= sample_limit:
+                break
+                
+        if not byte_list:
+            return 0.0
+        return round(calculate_shannon_entropy(byte_list), 4)
+    except Exception:
+        return 0.0
+
+def compute_sha256(file_path):
+    with open(file_path, 'rb') as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
 # ===========================
 # DETECTION & ANALYSIS FUNCTIONS
 # ===========================
@@ -158,39 +193,36 @@ def analyze_image(file_path, decode_key=None):
             - metadata: Image metadata (dimensions, format, mode, etc.)
             - hidden_message: Extracted message (if found)
             - has_hidden_data: Boolean indicating if EOF marker was found
-            - timestamp: Analysis timestamp
+            - entropy_score: Shannon entropy score (0.0 to 8.0)
             - error: Error message (if status is 'error')
     """
     result = {
         'status': 'error',
         'file_path': file_path,
         'file_hash': None,
-        'file_size': None,
+        'file_size': 0,
         'metadata': {},
         'hidden_message': None,
-        'entropy_score': 0.0,
+        'raw_payload': None,
         'has_hidden_data': False,
         'decryption_key_used': False,
-        'timestamp': datetime.now().isoformat(),
+        'entropy_score': 0.0,
         'error': None
     }
     
-    # Validate file existence
-    if not os.path.exists(file_path):
-        result['error'] = f"File not found: {file_path}"
-        return result
-    
     try:
-        # Generate SHA-256 hash
-        with open(file_path, 'rb') as f:
-            file_bytes = f.read()
-            result['file_hash'] = hashlib.sha256(file_bytes).hexdigest()
-            result['file_size'] = len(file_bytes)
+        # Step 1: File Integrity Validation
+        if not os.path.exists(file_path):
+            result['error'] = f"File not found: {file_path}"
+            return result
+            
+        result['file_size'] = os.path.getsize(file_path)
+        result['file_hash'] = compute_sha256(file_path)
         
-        # Load image
+        # Step 2: Open and validate image
         image = Image.open(file_path)
-        orig_format = image.format or os.path.splitext(file_path)[1].replace('.', '').upper()
-        image = image.convert("RGBA")
+        orig_format = image.format or "PNG"
+        image = image.convert('RGBA')
         
         # Extract basic metadata
         result['metadata'] = {
@@ -211,6 +243,9 @@ def analyze_image(file_path, decode_key=None):
             result['metadata']['exif_present'] = False
 
         total_bits = result['metadata']['max_capacity_bits']
+
+        # Calculate LSB Shannon Entropy upfront for the image
+        result['entropy_score'] = calculate_image_lsb_entropy(image)
 
         # ---------------------------------------------------------
         # FAST PATH: Check for the new Steganography Tool format (Header-based: !3sBI)

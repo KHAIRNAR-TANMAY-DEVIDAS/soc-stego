@@ -101,6 +101,41 @@ python main.py --verify
 
 ---
 
+## 🧪 Quickstart Testing & Demonstration
+
+Follow these quick steps to test both offensive data hiding and defensive detection:
+
+### Step 1: Hide a Payload (Red Team Simulation)
+1. Open the **Steganography (Hide / Extract)** tab.
+2. Click **Select Carrier Image** and pick any PNG or JPG image.
+3. In the **Secret Payload Message** box, type any test message (e.g., `CONFIDENTIAL_SOC_INCIDENT_REPORT_2026`).
+   * *(Optional)* Set a **Passphrase** to encrypt the payload with AES-Fernet.
+4. Click **Encode & Save Stego Image** to save the output file (e.g., `stego_sample.png`).
+
+### Step 2: Analyze & Hunt for Threats (Blue Team / SOC Forensics)
+1. Switch to the **Stego Analyzer** tab.
+2. Select your newly created `stego_sample.png`.
+3. If encrypted, optionally enter the **Decryption Passphrase**.
+4. Click **Scan Target**:
+   * Observe the **Detection Verdict** banner update to `POSITIVL (Threat Found)`.
+   * Check the **LSB Shannon Entropy score** and gauge.
+   * Review the extracted payload in the viewer or copy it to the clipboard.
+5. *(Optional)* Click **VirusTotal Threat Scan** to check the cryptographic hash against global threat intelligence.
+
+---
+
+### 🛡️ Testing with the Standard EICAR Antivirus Test String
+
+In security operations and threat simulations, analysts often test endpoint detection and response (EDR) rules using standard, benign test signatures rather than real malware.
+
+* To simulate malware concealment, you can copy the official standard **EICAR Anti-Malware Test String** from [eicar.org](https://www.eicar.org/download-anti-malware-testfile/) into the secret message box:
+  ```
+  https://www.eicar.org/download-anti-malware-testfile/
+  ```
+* **Why EICAR?** The EICAR test string is completely harmless, but globally recognized by antivirus scanners. Hiding it inside an image demonstrates how threat actors use steganography to evade perimeter security filters and transport signatures undetected.
+
+---
+
 ## 🔑 Configuring Your VirusTotal API Key (Optional)
 
 To enable the **VirusTotal Threat Scan** feature without committing your personal API credentials to Git:
